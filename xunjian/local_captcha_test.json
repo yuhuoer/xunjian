@@ -1,0 +1,96 @@
+{
+  "headless": false,
+  "timeout": 30,
+  "flows": [
+    {
+      "name": "local-captcha-login-test",
+      "variables": {
+        "html_file": "file:///workspace/xunjian/captcha_test_page.html",
+        "username": "admin",
+        "password": "password123"
+      },
+      "steps": [
+        { "action": "goto", "url": "${html_file}" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/local_captcha_page.png" },
+        
+        { "action": "type", "selector": "#username", "text": "${username}" },
+        { "action": "type", "selector": "#password", "text": "${password}" },
+        
+        { "action": "wait_visible", "selector": "#captcha-img", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/local_before_captcha.png" },
+        
+        { "action": "ocr_captcha", 
+          "selector": "#captcha-img", 
+          "name": "captcha_text", 
+          "preprocessing": "default" 
+        },
+        
+        { "action": "type", "selector": "#captcha", "text": "${captcha_text}" },
+        { "action": "screenshot", "path": "screenshots/local_captcha_filled.png" },
+        
+        { "action": "click", "selector": "#submit-btn" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/local_login_result.png" },
+        
+        { "action": "assert_page_contains", "text": "登录成功" }
+      ]
+    },
+    {
+      "name": "local-captcha-with-retry",
+      "variables": {
+        "html_file": "file:///workspace/xunjian/captcha_test_page.html",
+        "username": "testuser",
+        "password": "password123"
+      },
+      "steps": [
+        { "action": "goto", "url": "${html_file}" },
+        { "action": "sleep", "seconds": 2 },
+        { "action": "screenshot", "path": "screenshots/retry_captcha_page.png" },
+        
+        { "action": "type", "selector": "#username", "text": "${username}" },
+        { "action": "type", "selector": "#password", "text": "${password}" },
+        
+        { "action": "solve_captcha",
+          "captcha_selector": "#captcha-img",
+          "input_selector": "#captcha", 
+          "submit_selector": "#submit-btn",
+          "max_attempts": 5,
+          "preprocessing": "default"
+        },
+        
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/retry_final_result.png" },
+        { "action": "assert_page_contains", "text": "欢迎" }
+      ]
+    },
+    {
+      "name": "local-captcha-different-preprocessing",
+      "variables": {
+        "html_file": "file:///workspace/xunjian/captcha_test_page.html",
+        "username": "selenium_test",
+        "password": "auto_test_123"
+      },
+      "steps": [
+        { "action": "goto", "url": "${html_file}" },
+        { "action": "sleep", "seconds": 2 },
+        
+        { "action": "type", "selector": "#username", "text": "${username}" },
+        { "action": "type", "selector": "#password", "text": "${password}" },
+        
+        { "action": "screenshot", "path": "screenshots/preprocessing_before.png" },
+        
+        { "action": "ocr_captcha", "selector": "#captcha-img", "name": "captcha_binary", "preprocessing": "binary" },
+        { "action": "ocr_captcha", "selector": "#captcha-img", "name": "captcha_grayscale", "preprocessing": "grayscale" },
+        { "action": "ocr_captcha", "selector": "#captcha-img", "name": "captcha_default", "preprocessing": "default" },
+        
+        { "action": "type", "selector": "#captcha", "text": "${captcha_default}" },
+        { "action": "screenshot", "path": "screenshots/preprocessing_filled.png" },
+        
+        { "action": "click", "selector": "#submit-btn" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/preprocessing_result.png" }
+      ]
+    }
+  ]
+}

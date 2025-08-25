@@ -1,0 +1,97 @@
+{
+  "headless": false,
+  "timeout": 30,
+  "flows": [
+    {
+      "name": "captcha-login-demo-1",
+      "variables": {
+        "base_url": "https://captcha-demo.com/login",
+        "username": "testuser",
+        "password": "testpass"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/captcha_login_page.png" },
+        
+        { "action": "type", "selector": "#username, input[name='username'], input[type='text']", "text": "${username}" },
+        { "action": "type", "selector": "#password, input[name='password'], input[type='password']", "text": "${password}" },
+        
+        { "action": "wait_visible", "selector": "#captcha-img, .captcha-img, img[alt*='captcha'], img[src*='captcha']", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/before_captcha_recognition.png" },
+        
+        { "action": "ocr_captcha", "selector": "#captcha-img, .captcha-img, img[alt*='captcha'], img[src*='captcha']", "name": "captcha_code", "preprocessing": "binary" },
+        { "action": "type", "selector": "#captcha, input[name='captcha'], .captcha-input", "text": "${captcha_code}" },
+        
+        { "action": "screenshot", "path": "screenshots/after_captcha_input.png" },
+        { "action": "click", "selector": "#submit, button[type='submit'], .login-btn" },
+        
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/login_result.png" },
+        { "action": "check_error_keyword" }
+      ]
+    },
+    {
+      "name": "captcha-login-with-retry",
+      "variables": {
+        "base_url": "https://example-captcha.com/login",
+        "username": "admin",
+        "password": "password123"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "sleep", "seconds": 2 },
+        { "action": "screenshot", "path": "screenshots/retry_login_page.png" },
+        
+        { "action": "type", "selector": "input[name='username']", "text": "${username}" },
+        { "action": "type", "selector": "input[name='password']", "text": "${password}" },
+        
+        { "action": "solve_captcha", 
+          "captcha_selector": ".captcha-image, #captcha-img", 
+          "input_selector": "#captcha-code, input[name='captcha']",
+          "submit_selector": "#login-submit, button[type='submit']",
+          "max_attempts": 3,
+          "preprocessing": "denoise"
+        },
+        
+        { "action": "sleep", "seconds": 2 },
+        { "action": "screenshot", "path": "screenshots/retry_login_result.png" }
+      ]
+    },
+    {
+      "name": "complex-captcha-login",
+      "variables": {
+        "base_url": "https://test-captcha.herokuapp.com/login",
+        "username": "selenium_test",
+        "password": "auto_test_123"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "wait_visible", "selector": "form", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/complex_login_page.png" },
+        
+        { "action": "type", "selector": "#email, #username, input[type='email']", "text": "${username}" },
+        { "action": "type", "selector": "#pwd, #password, input[type='password']", "text": "${password}" },
+        
+        { "action": "wait_visible", "selector": ".verification-code img, .captcha img", "timeout": 15 },
+        
+        { "action": "ocr_captcha", 
+          "selector": ".verification-code img, .captcha img", 
+          "name": "verification_code", 
+          "preprocessing": "grayscale" 
+        },
+        
+        { "action": "type", "selector": "#verification, #captcha-input, input[placeholder*='验证码']", "text": "${verification_code}" },
+        
+        { "action": "screenshot", "path": "screenshots/complex_before_submit.png" },
+        { "action": "click", "selector": "#submit-btn, .submit-button, button[type='submit']" },
+        
+        { "action": "sleep", "seconds": 5 },
+        { "action": "screenshot", "path": "screenshots/complex_login_result.png" },
+        
+        { "action": "assert_page_not_contains", "text": "验证码错误" },
+        { "action": "assert_page_not_contains", "text": "登录失败" }
+      ]
+    }
+  ]
+}

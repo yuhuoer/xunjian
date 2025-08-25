@@ -1,0 +1,96 @@
+{
+  "headless": false,
+  "timeout": 30,
+  "flows": [
+    {
+      "name": "github-like-captcha-demo",
+      "variables": {
+        "base_url": "https://httpbin.org/forms/post",
+        "username": "test_user",
+        "password": "test_pass"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/httpbin_form.png" },
+        { "action": "type", "selector": "input[name='custname']", "text": "${username}" },
+        { "action": "type", "selector": "input[name='custtel']", "text": "12345678901" },
+        { "action": "screenshot", "path": "screenshots/httpbin_filled.png" },
+        { "action": "click", "selector": "input[type='submit']" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/httpbin_result.png" }
+      ]
+    },
+    {
+      "name": "mock-captcha-with-wait-user",
+      "variables": {
+        "base_url": "https://the-internet.herokuapp.com/login",
+        "username": "tomsmith", 
+        "password": "SuperSecretPassword!"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "sleep", "seconds": 2 },
+        { "action": "screenshot", "path": "screenshots/mock_login_page.png" },
+        
+        { "action": "type", "selector": "#username", "text": "${username}" },
+        { "action": "type", "selector": "#password", "text": "${password}" },
+        
+        { "action": "screenshot", "path": "screenshots/mock_before_submit.png" },
+        { "action": "wait_user", "text": "请在浏览器中手动处理验证码（如果有），然后按回车继续...", "seconds": 30 },
+        
+        { "action": "click", "selector": "button[type='submit']" },
+        { "action": "wait_visible", "selector": ".flash", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/mock_login_result.png" },
+        { "action": "assert_page_contains", "text": "You logged into a secure area!" }
+      ]
+    },
+    {
+      "name": "captcha-with-iframe-handling",
+      "variables": {
+        "base_url": "https://www.google.com/recaptcha/api2/demo"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "sleep", "seconds": 5 },
+        { "action": "screenshot", "path": "screenshots/recaptcha_demo.png" },
+        
+        { "action": "wait_visible", "selector": ".g-recaptcha", "timeout": 10 },
+        { "action": "wait_user", "text": "请手动完成 reCAPTCHA 验证，然后按回车继续...", "seconds": 60 },
+        
+        { "action": "click", "selector": "#recaptcha-demo-submit" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/recaptcha_result.png" }
+      ]
+    },
+    {
+      "name": "simple-math-captcha-simulation",
+      "variables": {
+        "base_url": "https://demoqa.com/automation-practice-form"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/demoqa_form.png" },
+        
+        { "action": "type", "selector": "#firstName", "text": "Test" },
+        { "action": "type", "selector": "#lastName", "text": "User" },
+        { "action": "type", "selector": "#userEmail", "text": "test@example.com" },
+        
+        { "action": "click", "selector": "label[for='gender-radio-1']" },
+        { "action": "type", "selector": "#userNumber", "text": "1234567890" },
+        
+        { "action": "screenshot", "path": "screenshots/demoqa_form_filled.png" },
+        
+        { "action": "set_var", "name": "math_result", "text": "15" },
+        { "action": "type", "selector": "#currentAddress", "text": "Math captcha result: ${math_result}" },
+        
+        { "action": "screenshot", "path": "screenshots/demoqa_with_captcha_result.png" },
+        { "action": "click", "selector": "#submit" },
+        
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/demoqa_submit_result.png" }
+      ]
+    }
+  ]
+}
