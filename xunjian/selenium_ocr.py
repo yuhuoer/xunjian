@@ -16,6 +16,7 @@ from typing import Optional
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium_check import _resolve_locator
 
 # OCR imports with availability check
 try:
@@ -36,33 +37,6 @@ def is_ocr_available() -> bool:
 def get_ocr_dependencies_error() -> str:
     """获取OCR依赖缺失的错误信息"""
     return "OCR libraries not available. Install: pip install pillow pytesseract opencv-python numpy"
-
-
-def _resolve_locator(selector: str) -> tuple[str, str]:
-    """解析选择器格式
-    
-    Args:
-        selector: 元素选择器字符串
-        
-    Returns:
-        tuple: (By类型, 选择器值)
-        
-    Raises:
-        ValueError: 当选择器为空时
-    """
-    if not selector:
-        raise ValueError("Empty selector is not allowed")
-    
-    sel = selector.strip()
-    lower = sel.lower()
-    
-    if lower.startswith("xpath="):
-        return By.XPATH, sel.split("=", 1)[1]
-    if lower.startswith("css="):
-        return By.CSS_SELECTOR, sel.split("=", 1)[1]
-    if sel.startswith("//") or sel.startswith(".//"):
-        return By.XPATH, sel
-    return By.CSS_SELECTOR, sel
 
 
 def preprocess_image(img_cv: np.ndarray, preprocessing: str = "default") -> np.ndarray:

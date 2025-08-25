@@ -27,6 +27,8 @@ from selenium_check import (
 	create_webdriver,
 	get_body_text,
 	contains_error_keyword,
+	_resolve_locator
+	
 )
 
 
@@ -77,25 +79,7 @@ def load_suite(suite_path: str) -> Dict[str, Any]:
             return data
         raise ValueError("Suite JSON object must contain a 'flows' array")
     raise ValueError("Suite JSON must be an array of flows or an object with a 'flows' array")
-
-
-def _resolve_locator(selector: str) -> Tuple[str, str]:
-
-	if not selector:
-		raise ValueError("Empty selector is not allowed")
-	sel = selector.strip()
-	lower = sel.lower()
-	if lower.startswith("xpath="):
-		return By.XPATH, sel.split("=", 1)[1]
-	if lower.startswith("css="):
-		return By.CSS_SELECTOR, sel.split("=", 1)[1]
-	if sel.startswith("//") or sel.startswith(".//"):
-		return By.XPATH, sel
-	return By.CSS_SELECTOR, sel
-
-
     
-
 
 def _type(driver, selector: str, text: str, timeout: int) -> None:
 
@@ -123,12 +107,6 @@ def _interpolate(text: str, variables: Dict[str, Any]) -> str:
 		return str(value)
 
 	return re.sub(r"\$\{([^}]+)\}", repl, text)
-
-
-
-
-
-
 
 
 def run_flow_steps(flow: Dict[str, Any], cli_overrides: argparse.Namespace) -> int:
