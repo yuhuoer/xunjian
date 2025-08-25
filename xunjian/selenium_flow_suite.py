@@ -4,8 +4,7 @@ import os
 import re
 import sys
 import time
-import base64
-import io
+
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -14,15 +13,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException
 
-# OCR imports
-try:
-    import cv2
-    import numpy as np
-    from PIL import Image
-    import pytesseract
-    OCR_AVAILABLE = True
-except ImportError:
-    OCR_AVAILABLE = False
+# OCR module import
+from selenium_ocr import (
+    is_ocr_available,
+    ocr_captcha,
+    solve_simple_captcha,
+    CaptchaSolver
+)
+
+OCR_AVAILABLE = is_ocr_available()
 
 from selenium_check import (
 	create_webdriver,
@@ -126,110 +125,10 @@ def _interpolate(text: str, variables: Dict[str, Any]) -> str:
 	return re.sub(r"\$\{([^}]+)\}", repl, text)
 
 
-def _ocr_captcha(driver, captcha_selector: str, preprocessing: str = "default") -> str:
-	"""
-	使用 pytesseract 识别验证码
-	:param driver: WebDriver实例
-	:param captcha_selector: 验证码图片的选择器
-	:param preprocessing: 图像预处理方式 ("default", "binary", "grayscale", "denoise")
-	:return: 识别出的验证码文本
-	"""
-	if not OCR_AVAILABLE:
-		raise RuntimeError("OCR libraries not available. Install: pip install pillow pytesseract opencv-python numpy")
-	
-	try:
-		# 找到验证码图片元素
-		by, value = _resolve_locator(captcha_selector)
-		captcha_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((by, value)))
-		
-		# 获取图片的base64数据或截图
-		img_src = captcha_element.get_attribute("src")
-		if img_src and img_src.startswith("data:image"):
-			# 处理base64图片
-			img_data = base64.b64decode(img_src.split(",")[1])
-			img = Image.open(io.BytesIO(img_data))
-		else:
-			# 截图验证码区域
-			img = Image.open(io.BytesIO(captcha_element.screenshot_as_png))
-		
-		# 转换为OpenCV格式
-		img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-		
-		# 图像预处理
-		if preprocessing == "binary":
-			# 二值化处理
-			gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
-			_, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-			img_cv = binary
-		elif preprocessing == "grayscale":
-			# 灰度处理
-			img_cv = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
-		elif preprocessing == "denoise":
-			# 去噪处理
-			gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
-			denoised = cv2.fastNlMeansDenoising(gray)
-			img_cv = denoised
-		else:
-			# 默认处理：转灰度
-			img_cv = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
-		
-		# 使用 pytesseract 进行OCR识别
-		config = '--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-		result = pytesseract.image_to_string(img_cv, config=config)
-		
-		# 清理结果
-		captcha_text = re.sub(r'[^a-zA-Z0-9]', '', result.strip())
-		print(f"pytesseract 识别验证码: {captcha_text}")
-		return captcha_text
-		
-	except Exception as e:
-		print(f"OCR识别失败: {e}")
-		return ""
 
 
-def _solve_simple_captcha(driver, captcha_selector: str, input_selector: str, submit_selector: str = None, max_attempts: int = 3) -> bool:
-	"""
-	自动解决简单验证码
-	:param driver: WebDriver实例
-	:param captcha_selector: 验证码图片选择器
-	:param input_selector: 验证码输入框选择器
-	:param submit_selector: 提交按钮选择器（可选）
-	:param max_attempts: 最大尝试次数
-	:return: 是否成功
-	"""
-	for attempt in range(max_attempts):
-		try:
-			# 识别验证码
-			captcha_text = _ocr_captcha(driver, captcha_selector)
-			if not captcha_text:
-				print(f"第{attempt + 1}次尝试：无法识别验证码")
-				continue
-			
-			# 输入验证码
-			_type(driver, input_selector, captcha_text, 10)
-			
-			# 如果有提交按钮，点击提交
-			if submit_selector:
-				_click(driver, submit_selector, 10)
-			
-			# 等待一下看是否成功
-			time.sleep(2)
-			
-			# 检查是否还有验证码错误提示
-			page_text = get_body_text(driver)
-			if "验证码" in page_text and ("错误" in page_text or "invalid" in page_text.lower()):
-				print(f"第{attempt + 1}次尝试：验证码错误，重试")
-				continue
-			
-			print(f"验证码识别成功：{captcha_text}")
-			return True
-			
-		except Exception as e:
-			print(f"第{attempt + 1}次尝试失败：{e}")
-			continue
-	
-	print("验证码识别失败，达到最大尝试次数")
-	return False
+
+
 
 
 def run_flow_steps(flow: Dict[str, Any], cli_overrides: argparse.Namespace) -> int:
@@ -369,7 +268,7 @@ def run_flow_steps(flow: Dict[str, Any], cli_overrides: argparse.Namespace) -> i
 				if not name:
 					raise ValueError("ocr_captcha requires 'name' to store result variable")
 				preprocessing = step.get("preprocessing", "default")
-				captcha_text = _ocr_captcha(driver, selector, preprocessing)
+				captcha_text = ocr_captcha(driver, selector, preprocessing)
 				variables[name] = captcha_text
 				print(f"验证码识别结果存储到变量 {name}: {captcha_text}")
 
@@ -379,13 +278,19 @@ def run_flow_steps(flow: Dict[str, Any], cli_overrides: argparse.Namespace) -> i
 				input_selector = step.get("input_selector")
 				submit_selector = step.get("submit_selector")
 				max_attempts = int(step.get("max_attempts", 3))
+				preprocessing = step.get("preprocessing", "default")
 				
 				if not captcha_selector:
 					raise ValueError("solve_captcha requires 'captcha_selector'")
 				if not input_selector:
 					raise ValueError("solve_captcha requires 'input_selector'")
 				
-				success = _solve_simple_captcha(driver, captcha_selector, input_selector, submit_selector, max_attempts)
+				# 传递selenium_check模块的函数引用
+				selenium_check_funcs = (get_body_text, _type, _click)
+				success = solve_simple_captcha(
+					driver, captcha_selector, input_selector, submit_selector, 
+					max_attempts, preprocessing, selenium_check_funcs
+				)
 				if not success:
 					print("验证码解决失败", file=sys.stderr)
 					return 1
