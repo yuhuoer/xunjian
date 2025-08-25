@@ -1,0 +1,38 @@
+{
+  "headless": false,
+  "timeout": 10,
+  "flows": [
+    {
+      "name": "test-wait-functions",
+      "variables": {
+        "test_url": "https://the-internet.herokuapp.com/dynamic_loading/1"
+      },
+      "steps": [
+        { "action": "goto", "url": "${test_url}" },
+        { "action": "screenshot", "path": "screenshots/before_click.png" },
+        { "action": "wait_presence", "selector": "#start button", "timeout": 5 },
+        { "action": "click", "selector": "#start button" },
+        { "action": "wait_visible", "selector": "#loading", "timeout": 5 },
+        { "action": "screenshot", "path": "screenshots/loading.png" },
+        { "action": "wait_visible", "selector": "#finish", "timeout": 15 },
+        { "action": "screenshot", "path": "screenshots/finished.png" },
+        { "action": "assert_page_contains", "text": "Hello World!" }
+      ]
+    },
+    {
+      "name": "test-wait-clickable",
+      "variables": {
+        "test_url": "https://the-internet.herokuapp.com/dynamic_controls"
+      },
+      "steps": [
+        { "action": "goto", "url": "${test_url}" },
+        { "action": "screenshot", "path": "screenshots/dynamic_controls.png" },
+        { "action": "wait_presence", "selector": "#checkbox-example button", "timeout": 5 },
+        { "action": "wait_clickable", "selector": "#checkbox-example button", "timeout": 5 },
+        { "action": "click", "selector": "#checkbox-example button" },
+        { "action": "sleep", "seconds": 2 },
+        { "action": "screenshot", "path": "screenshots/after_button_click.png" }
+      ]
+    }
+  ]
+}

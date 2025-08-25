@@ -13,6 +13,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException
 
+from selenium_check import (
+	create_webdriver,
+	get_body_text,
+	contains_error_keyword,
+)
+
 # OCR module import
 from selenium_ocr import (
     is_ocr_available,
@@ -22,12 +28,6 @@ from selenium_ocr import (
 )
 
 OCR_AVAILABLE = is_ocr_available()
-
-from selenium_check import (
-	create_webdriver,
-	get_body_text,
-	contains_error_keyword,
-)
 
 
 STATUS_BY_CODE: Dict[int, str] = {
@@ -125,10 +125,22 @@ def _interpolate(text: str, variables: Dict[str, Any]) -> str:
 	return re.sub(r"\$\{([^}]+)\}", repl, text)
 
 
+def _wait_presence(driver, selector: str, timeout: int) -> None:
+	"""等待元素出现在DOM中"""
+	by, value = _resolve_locator(selector)
+	WebDriverWait(driver, timeout).until(EC.presence_of_element_located((by, value)))
 
 
+def _wait_visible(driver, selector: str, timeout: int) -> None:
+	"""等待元素可见"""
+	by, value = _resolve_locator(selector)
+	WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((by, value)))
 
 
+def _wait_clickable(driver, selector: str, timeout: int) -> None:
+	"""等待元素可点击"""
+	by, value = _resolve_locator(selector)
+	WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((by, value)))
 
 
 def run_flow_steps(flow: Dict[str, Any], cli_overrides: argparse.Namespace) -> int:
