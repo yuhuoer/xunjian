@@ -1,0 +1,101 @@
+{
+  "headless": false,
+  "timeout": 20,
+  "flows": [
+    {
+      "name": "the-internet-login-test",
+      "variables": {
+        "base_url": "https://the-internet.herokuapp.com/login",
+        "username": "tomsmith",
+        "password": "SuperSecretPassword!"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "wait_visible", "selector": "#username", "timeout": 10 },
+        { "action": "type", "selector": "#username", "text": "${username}" },
+        { "action": "type", "selector": "#password", "text": "${password}" },
+        { "action": "screenshot", "path": "screenshots/the_internet_before_login.png" },
+        { "action": "click", "selector": "button[type='submit']" },
+        { "action": "wait_visible", "selector": ".flash.success", "timeout": 10 },
+        { "action": "assert_page_contains", "text": "You logged into a secure area!" },
+        { "action": "screenshot", "path": "screenshots/the_internet_after_login.png" }
+      ]
+    },
+    {
+      "name": "saucedemo-login-test",
+      "variables": {
+        "base_url": "https://www.saucedemo.com/",
+        "username": "standard_user",
+        "password": "secret_sauce"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "wait_visible", "selector": "#user-name", "timeout": 10 },
+        { "action": "type", "selector": "#user-name", "text": "${username}" },
+        { "action": "type", "selector": "#password", "text": "${password}" },
+        { "action": "screenshot", "path": "screenshots/saucedemo_before_login.png" },
+        { "action": "click", "selector": "#login-button" },
+        { "action": "wait_visible", "selector": ".inventory_list", "timeout": 10 },
+        { "action": "assert_page_contains", "text": "Products" },
+        { "action": "screenshot", "path": "screenshots/saucedemo_after_login.png" },
+        { "action": "click", "selector": ".shopping_cart_link" },
+        { "action": "screenshot", "path": "screenshots/saucedemo_cart.png" }
+      ]
+    },
+    {
+      "name": "demoqa-elements-test",
+      "variables": {
+        "base_url": "https://demoqa.com/elements"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "wait_visible", "selector": ".category-cards", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/demoqa_elements.png" },
+        { "action": "click", "selector": "//span[text()='Text Box']" },
+        { "action": "wait_visible", "selector": "#userName", "timeout": 10 },
+        { "action": "type", "selector": "#userName", "text": "Test User" },
+        { "action": "type", "selector": "#userEmail", "text": "test@example.com" },
+        { "action": "type", "selector": "#currentAddress", "text": "123 Test Street" },
+        { "action": "screenshot", "path": "screenshots/demoqa_textbox_filled.png" },
+        { "action": "click", "selector": "#submit" },
+        { "action": "wait_visible", "selector": "#output", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/demoqa_textbox_result.png" }
+      ]
+    },
+    {
+      "name": "webdriveruniversity-contact-form",
+      "variables": {
+        "base_url": "http://www.webdriveruniversity.com/Contact-Us/contactus.html"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "wait_visible", "selector": "input[name='first_name']", "timeout": 10 },
+        { "action": "type", "selector": "input[name='first_name']", "text": "John" },
+        { "action": "type", "selector": "input[name='last_name']", "text": "Doe" },
+        { "action": "type", "selector": "input[name='email']", "text": "john.doe@example.com" },
+        { "action": "type", "selector": "textarea[name='message']", "text": "This is a test message from Selenium automation." },
+        { "action": "screenshot", "path": "screenshots/webdriveruni_contact_filled.png" },
+        { "action": "click", "selector": "input[type='submit']" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/webdriveruni_contact_result.png" }
+      ]
+    },
+    {
+      "name": "automationpractice-search-test",
+      "variables": {
+        "base_url": "http://automationpractice.com/index.php",
+        "search_term": "dress"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "wait_visible", "selector": "#search_query_top", "timeout": 10 },
+        { "action": "type", "selector": "#search_query_top", "text": "${search_term}" },
+        { "action": "screenshot", "path": "screenshots/automationpractice_search_input.png" },
+        { "action": "click", "selector": "#searchbox button[type='submit']" },
+        { "action": "wait_visible", "selector": ".product_list", "timeout": 15 },
+        { "action": "assert_page_contains", "text": "dress" },
+        { "action": "screenshot", "path": "screenshots/automationpractice_search_results.png" }
+      ]
+    }
+  ]
+}

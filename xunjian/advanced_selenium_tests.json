@@ -1,0 +1,88 @@
+{
+  "headless": false,
+  "timeout": 30,
+  "flows": [
+    {
+      "name": "the-internet-dynamic-loading",
+      "variables": {
+        "base_url": "https://the-internet.herokuapp.com/dynamic_loading/1"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "wait_visible", "selector": "#start button", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/dynamic_loading_start.png" },
+        { "action": "click", "selector": "#start button" },
+        { "action": "wait_visible", "selector": "#loading", "timeout": 5 },
+        { "action": "wait_visible", "selector": "#finish", "timeout": 15 },
+        { "action": "assert_page_contains", "text": "Hello World!" },
+        { "action": "screenshot", "path": "screenshots/dynamic_loading_finish.png" }
+      ]
+    },
+    {
+      "name": "the-internet-file-upload",
+      "variables": {
+        "base_url": "https://the-internet.herokuapp.com/upload"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "wait_visible", "selector": "#file-upload", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/file_upload_page.png" },
+        { "action": "sleep", "seconds": 2 }
+      ]
+    },
+    {
+      "name": "the-internet-dropdown",
+      "variables": {
+        "base_url": "https://the-internet.herokuapp.com/dropdown"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "wait_visible", "selector": "#dropdown", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/dropdown_before.png" },
+        { "action": "click", "selector": "#dropdown" },
+        { "action": "click", "selector": "#dropdown option[value='1']" },
+        { "action": "screenshot", "path": "screenshots/dropdown_after.png" }
+      ]
+    },
+    {
+      "name": "the-internet-checkboxes",
+      "variables": {
+        "base_url": "https://the-internet.herokuapp.com/checkboxes"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "wait_visible", "selector": "input[type='checkbox']", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/checkboxes_before.png" },
+        { "action": "click", "selector": "input[type='checkbox']:first-of-type" },
+        { "action": "screenshot", "path": "screenshots/checkboxes_after.png" }
+      ]
+    },
+    {
+      "name": "demoqa-drag-drop",
+      "variables": {
+        "base_url": "https://demoqa.com/droppable"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "wait_visible", "selector": "#draggable", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/drag_drop_before.png" },
+        { "action": "sleep", "seconds": 2 },
+        { "action": "screenshot", "path": "screenshots/drag_drop_after.png" }
+      ]
+    },
+    {
+      "name": "demoqa-alerts",
+      "variables": {
+        "base_url": "https://demoqa.com/alerts"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "wait_visible", "selector": "#alertButton", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/alerts_page.png" },
+        { "action": "click", "selector": "#alertButton" },
+        { "action": "sleep", "seconds": 2 },
+        { "action": "screenshot", "path": "screenshots/alerts_clicked.png" }
+      ]
+    }
+  ]
+}
