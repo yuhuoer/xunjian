@@ -1,0 +1,23 @@
+{
+  "headless": true,
+  "timeout": 20,
+  "variables": {
+    "base": "https://www.saucedemo.com/",
+    "username": "standard_user",
+    "password": "secret_sauce"
+  },
+  "steps": [
+    { "action": "goto", "url": "${base}" },
+    { "action": "type", "selector": "#user-name", "text": "${username}" },
+    { "action": "type", "selector": "#password", "text": "${password}" },
+    { "action": "click", "selector": "#login-button" },
+    { "action": "wait_visible", "selector": ".inventory_list" },
+    { "action": "click", "selector": ".shopping_cart_link" },
+    { "action": "wait_visible", "selector": ".cart_list" },
+    { "action": "check_error_keyword" },
+    { "action": "screenshot", "path": "artifacts/saucedemo_cart.png" },
+    { "action": "save_source", "path": "artifacts/saucedemo_cart.html" }
+  ]
+}
+
+

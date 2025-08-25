@@ -1,0 +1,117 @@
+{
+  "headless": false,
+  "timeout": 30,
+  "flows": [
+    {
+      "name": "login-with-pytesseract-captcha",
+      "variables": {
+        "base": "https://example.com",
+        "username": "testuser",
+        "password": "testpass"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base}/login" },
+        { "action": "type", "selector": "#username", "text": "${username}" },
+        { "action": "type", "selector": "#password", "text": "${password}" },
+        
+        # 方法1：仅识别验证码，手动输入
+        { "action": "ocr_captcha", "selector": "#captcha-img", "name": "captcha_text", "preprocessing": "binary" },
+        { "action": "type", "selector": "#captcha-input", "text": "${captcha_text}" },
+        
+        # 方法2：自动解决验证码（识别+输入+验证）
+        # { "action": "solve_captcha", "captcha_selector": "#captcha-img", "input_selector": "#captcha-input", "submit_selector": "#submit-btn", "max_attempts": 3 },
+        
+        { "action": "click", "selector": "#login-button" },
+        { "action": "wait_visible", "selector": ".dashboard" },
+        { "action": "check_error_keyword" }
+      ]
+    },
+    {
+      "name": "login-with-different-preprocessing",
+      "variables": {
+        "base": "https://example.com",
+        "username": "testuser", 
+        "password": "testpass"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base}/login" },
+        { "action": "type", "selector": "#username", "text": "${username}" },
+        { "action": "type", "selector": "#password", "text": "${password}" },
+        
+        # 尝试不同的预处理方式
+        { "action": "ocr_captcha", "selector": "#captcha-img", "name": "captcha_binary", "preprocessing": "binary" },
+        { "action": "ocr_captcha", "selector": "#captcha-img", "name": "captcha_denoise", "preprocessing": "denoise" },
+        { "action": "ocr_captcha", "selector": "#captcha-img", "name": "captcha_grayscale", "preprocessing": "grayscale" },
+        
+        # 使用识别结果最好的那个
+        { "action": "type", "selector": "#captcha-input", "text": "${captcha_binary}" },
+        
+        { "action": "click", "selector": "#login-button" },
+        { "action": "wait_visible", "selector": ".dashboard" },
+        { "action": "check_error_keyword" }
+      ]
+    },
+    {
+      "name": "login-with-iframe-captcha",
+      "variables": {
+        "base": "https://example.com",
+        "username": "testuser", 
+        "password": "testpass"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base}/login" },
+        { "action": "type", "selector": "#username", "text": "${username}" },
+        { "action": "type", "selector": "#password", "text": "${password}" },
+        
+        # 处理iframe中的验证码
+        { "action": "switch_to_frame", "selector": "xpath=//iframe[@title='reCAPTCHA']" },
+        { "action": "wait_user", "text": "请在reCAPTCHA iframe中完成验证后按回车..." },
+        { "action": "switch_to_default_content" },
+        
+        { "action": "click", "selector": "#login-button" },
+        { "action": "wait_visible", "selector": ".dashboard" },
+        { "action": "check_error_keyword" }
+      ]
+    },
+    {
+      "name": "login-with-cookie-reuse",
+      "variables": {
+        "base": "https://example.com",
+        "username": "testuser",
+        "password": "testpass"
+      },
+      "steps": [
+        # 首次登录（手动完成验证码）
+        { "action": "goto", "url": "${base}/login" },
+        { "action": "type", "selector": "#username", "text": "${username}" },
+        { "action": "type", "selector": "#password", "text": "${password}" },
+        { "action": "wait_user", "text": "请手动完成验证码后按回车保存cookie..." },
+        { "action": "save_cookies", "path": "artifacts/login_cookies.json" },
+        
+        # 后续访问（使用cookie跳过验证码）
+        { "action": "goto", "url": "${base}" },
+        { "action": "load_cookies", "path": "artifacts/login_cookies.json" },
+        { "action": "goto", "url": "${base}/dashboard" },
+        { "action": "wait_visible", "selector": ".dashboard" },
+        { "action": "check_error_keyword" }
+      ]
+    },
+    {
+      "name": "interactive-captcha-solver",
+      "variables": {
+        "base": "https://example.com"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base}/login" },
+        
+        # 提示用户输入验证码
+        { "action": "prompt", "name": "manual_captcha", "text": "请输入验证码: " },
+        { "action": "type", "selector": "#captcha-input", "text": "${manual_captcha}" },
+        
+        { "action": "click", "selector": "#login-button" },
+        { "action": "wait_visible", "selector": ".dashboard" },
+        { "action": "check_error_keyword" }
+      ]
+    }
+  ]
+}

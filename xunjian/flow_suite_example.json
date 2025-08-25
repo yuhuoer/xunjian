@@ -1,0 +1,38 @@
+{
+  "headless": false,
+  "timeout": 20,
+  "flows": [
+    {
+      "name": "swag",
+      "variables": {
+        "base": "https://www.saucedemo.com/",
+        "username": "standard_user",
+        "password": "secret_sauce"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base}" },
+        { "action": "type", "selector": "#user-name", "text": "${username}" },
+        { "action": "type", "selector": "#password", "text": "${password}" },
+        { "action": "click", "selector": "#login-button" },
+        { "action": "click", "selector": ".shopping_cart_link" }
+      ]
+    },
+    {
+      "name": "the-internet-login",
+      "variables": {
+        "base": "https://walkthrough.mabl.com/",
+        "username": "QUALITY",
+        "password": "demo123"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base}" },
+        { "action": "type", "selector": "[data-pendo-id=\"walkthrough-username-input\"]", "text": "${username}" },
+        { "action": "type", "selector": "[data-pendo-id=\"walkthrough-password-input\"]", "text": "${password}" },
+        { "action": "click", "selector": "//button[@type='submit']" },
+        { "action": "click", "selector": "//button[@type='submit']" }
+      ]
+    }
+  ]
+}
+
+

@@ -1,0 +1,11 @@
+selenium>=4.22.0
+pillow>=10.0.0
+pytesseract>=0.3.10
+opencv-python>=4.8.0
+numpy<2.0
+
+# 注意：还需要手动安装 Tesseract OCR 引擎
+# Windows: https://github.com/UB-Mannheim/tesseract/wiki
+# macOS: brew install tesseract  
+# Ubuntu: sudo apt-get install tesseract-ocr
+
