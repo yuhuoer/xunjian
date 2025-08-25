@@ -1,0 +1,46 @@
+{
+  "headless": false,
+  "timeout": 30,
+  "flows": [
+    {
+      "name": "test-capmonster-demo",
+      "variables": {
+        "base_url": "https://capmonster.cloud/zh/Demo"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/capmonster_demo.png" },
+        { "action": "wait_visible", "selector": "img[alt*='captcha'], img[src*='captcha'], .captcha-img, #captcha", "timeout": 10 },
+        { "action": "ocr_captcha", "selector": "img[alt*='captcha'], img[src*='captcha'], .captcha-img, #captcha", "name": "captcha_text", "preprocessing": "default" },
+        { "action": "screenshot", "path": "screenshots/capmonster_after_ocr.png" }
+      ]
+    },
+    {
+      "name": "test-toolshu-captcha",
+      "variables": {
+        "base_url": "https://toolshu.com/imgcode"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/toolshu_demo.png" },
+        { "action": "wait_visible", "selector": "img.captcha, img[src*='captcha'], .verification-code img", "timeout": 10 },
+        { "action": "ocr_captcha", "selector": "img.captcha, img[src*='captcha'], .verification-code img", "name": "captcha_text", "preprocessing": "binary" },
+        { "action": "screenshot", "path": "screenshots/toolshu_after_ocr.png" }
+      ]
+    },
+    {
+      "name": "test-simple-captcha-generator",
+      "variables": {
+        "base_url": "https://www.google.com/recaptcha/api2/demo"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/recaptcha_demo.png" },
+        { "action": "wait_visible", "selector": ".g-recaptcha", "timeout": 10 }
+      ]
+    }
+  ]
+}

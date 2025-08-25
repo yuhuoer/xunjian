@@ -1,0 +1,46 @@
+{
+  "headless": false,
+  "timeout": 30,
+  "flows": [
+    {
+      "name": "test-httpbin-basic-auth",
+      "variables": {
+        "base_url": "https://httpbin.org/basic-auth/user/passwd"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "sleep", "seconds": 2 },
+        { "action": "screenshot", "path": "screenshots/httpbin_auth.png" }
+      ]
+    },
+    {
+      "name": "test-the-internet-login",
+      "variables": {
+        "base_url": "https://the-internet.herokuapp.com/login",
+        "username": "tomsmith",
+        "password": "SuperSecretPassword!"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "sleep", "seconds": 2 },
+        { "action": "type", "selector": "#username", "text": "${username}" },
+        { "action": "type", "selector": "#password", "text": "${password}" },
+        { "action": "screenshot", "path": "screenshots/the_internet_login.png" },
+        { "action": "click", "selector": "button[type='submit']" },
+        { "action": "wait_visible", "selector": ".flash.success", "timeout": 10 },
+        { "action": "screenshot", "path": "screenshots/the_internet_success.png" }
+      ]
+    },
+    {
+      "name": "test-dummy-login-with-mock-captcha",
+      "variables": {
+        "base_url": "https://dummyjson.com/docs/auth"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base_url}" },
+        { "action": "sleep", "seconds": 3 },
+        { "action": "screenshot", "path": "screenshots/dummyjson_docs.png" }
+      ]
+    }
+  ]
+}
