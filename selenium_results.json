@@ -1,23 +1,16 @@
 {
-  "generated_at": "2025-08-25T03:20:34.740612Z",
-  "total": 2,
+  "generated_at": "2025-08-26T01:49:40.453570Z",
+  "total": 1,
   "summary": {
     "pass": 1,
     "error_found": 0,
-    "failures": 1
+    "failures": 0
   },
   "results": [
     {
-      "name": "swag",
+      "name": "ocr",
       "exit_code": 0,
       "status": "PASS_NO_ERROR_FOUND",
-      "timeout": 20,
-      "headless": false
-    },
-    {
-      "name": "the-internet-login",
-      "exit_code": 3,
-      "status": "WEBDRIVER_ERROR",
       "timeout": 20,
       "headless": false
     }

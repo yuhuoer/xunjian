@@ -1,0 +1,26 @@
+{
+  "headless": false,
+  "timeout": 20,
+  "flows": [
+    {
+      "name": "ocr",
+      "variables": {
+        "base": "https://qingtu.cn/dashboard/auth/login/",
+        "username": "13140029812",
+        "password": "password123"
+      },
+      "steps": [
+        { "action": "goto", "url": "${base}" },
+        { "action": "type", "selector": "input[name='username']", "text": "${username}" },
+        { "action": "type", "selector": "input[name='password']", "text": "${password}" },
+        { "action": "ocr_captcha", "selector": "img[alt='验证码']", "name": "captcha", "preprocessing": "binary"},
+        { "action": "type", "selector": "input[placeholder='验证码']", "text": "${captcha}"},
+        { "action": "solve_captcha", "captcha_selector": "img[alt='验证码']", "input_selector": "input[placeholder='验证码']",
+          "submit_selector": "//button[@type='submit']", "max_attempts": 5, "preprocessing": "binary"},
+        { "action": "sleep", "seconds": 20}
+      ]
+    }
+  ]
+}
+
+
