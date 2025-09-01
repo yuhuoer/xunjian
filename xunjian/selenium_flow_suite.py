@@ -24,20 +24,26 @@ from selenium_ocr import (
 OCR_AVAILABLE = is_ocr_available()
 
 from selenium_check import (
-	create_webdriver,
-	get_body_text,
-	contains_error_keyword,
-	_resolve_locator
+	_create_webdriver,
+	_get_body_text,
+	_contains_error_keyword,
+	_resolve_locator,
+	_type,
+	_click,
+	_interpolate,
+	_wait_presence,
+	_wait_visible,
+	_wait_clickable
 	
 )
 
 
 STATUS_BY_CODE: Dict[int, str] = {
-    0: "PASS_NO_ERROR_FOUND",
-    1: "ERROR_KEYWORD_FOUND",
-    2: "SELENIUM_TIMEOUT_OR_NO_SUCH_ELEMENT",
-    3: "WEBDRIVER_ERROR",
-    4: "UNEXPECTED_ERROR",
+    0: "PASS_NO_ERROR_FOUND", # 巡检通过
+    1: "ERROR_KEYWORD_FOUND", # 巡检发现失败关键词
+    2: "SELENIUM_TIMEOUT_OR_NO_SUCH_ELEMENT", # SELENIUM超时或没有找到对应元素
+    3: "WEBDRIVER_ERROR", # WEBDRIVER驱动错误
+    4: "UNEXPECTED_ERROR", # 未预知的错误
 }
 
 
@@ -54,9 +60,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", default="selenium_results.json", help="Path to write JSON report")
     parser.add_argument("--headless", action="store_true", help="Default headless when a flow omits it")
     parser.add_argument("--default-timeout", type=int, default=20, help="Default per-step timeout seconds")
-    parser.add_argument(
-        "--chromedriver-path",
-        default=os.environ.get("CHROMEDRIVER"),
+    parser.add_argument("--chromedriver-path",default=os.environ.get("CHROMEDRIVER"),
         help="Default local chromedriver path for all flows (each flow can override)",
     )
     parser.add_argument("--stop-on-fail", action="store_true", help="Stop after the first non-zero exit code")
@@ -81,34 +85,6 @@ def load_suite(suite_path: str) -> Dict[str, Any]:
     raise ValueError("Suite JSON must be an array of flows or an object with a 'flows' array")
     
 
-def _type(driver, selector: str, text: str, timeout: int) -> None:
-
-	by, value = _resolve_locator(selector)
-	element = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((by, value)))
-	element.clear()
-	element.send_keys(text)
-
-
-def _click(driver, selector: str, timeout: int) -> None:
-
-	by, value = _resolve_locator(selector)
-	element = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((by, value)))
-	element.click()
-
-
-def _interpolate(text: str, variables: Dict[str, Any]) -> str:
-
-	if text is None:
-		return text
-
-	def repl(match: re.Match) -> str:
-		key = match.group(1)
-		value = variables.get(key, "")
-		return str(value)
-
-	return re.sub(r"\$\{([^}]+)\}", repl, text)
-
-
 def run_flow_steps(flow: Dict[str, Any], cli_overrides: argparse.Namespace) -> int:
 
 	variables: Dict[str, Any] = flow.get("variables", {}) or {}
@@ -122,7 +98,7 @@ def run_flow_steps(flow: Dict[str, Any], cli_overrides: argparse.Namespace) -> i
 
 	driver = None
 	try:
-		driver = create_webdriver(headless=headless, chromedriver_path=chromedriver_path)
+		driver = _create_webdriver(headless=headless, chromedriver_path=chromedriver_path)
 
 		for idx, step in enumerate(flow["steps"]):
 			action = step.get("action")
@@ -175,21 +151,21 @@ def run_flow_steps(flow: Dict[str, Any], cli_overrides: argparse.Namespace) -> i
 				needle = text or value
 				if not needle:
 					raise ValueError("assert_page_contains requires 'text' or 'value'")
-				page_text = get_body_text(driver)
+				page_text = _get_body_text(driver)
 				if needle not in page_text:
 					print(f"Assertion failed: page does not contain '{needle}'", file=sys.stderr)
 					return 1
 
-			elif action == "assert_page_not_contains":
+			elif action == "assert_page_not_contains": # 需要参数 text or value
 				needle = text or value
 				if not needle:
 					raise ValueError("assert_page_not_contains requires 'text' or 'value'")
-				page_text = get_body_text(driver)
+				page_text = _get_body_text(driver)
 				if needle in page_text:
 					print(f"Assertion failed: page unexpectedly contains '{needle}'", file=sys.stderr)
 					return 1
 
-			elif action == "assert_element_contains":
+			elif action == "assert_element_contains": # 需要参数 selector 以及 text or value
 				if not selector:
 					raise ValueError("assert_element_contains requires 'selector'")
 				needle = text or value
@@ -201,7 +177,7 @@ def run_flow_steps(flow: Dict[str, Any], cli_overrides: argparse.Namespace) -> i
 					print(f"Assertion failed: element text does not contain '{needle}'", file=sys.stderr)
 					return 1
 
-			elif action == "assert_element_not_contains":
+			elif action == "assert_element_not_contains": # 需要参数 selector 以及 text or value
 				if not selector:
 					raise ValueError("assert_element_not_contains requires 'selector'")
 				needle = text or value
@@ -214,8 +190,8 @@ def run_flow_steps(flow: Dict[str, Any], cli_overrides: argparse.Namespace) -> i
 					return 1
 
 			elif action == "check_error_keyword":
-				page_text = get_body_text(driver)
-				if contains_error_keyword(page_text):
+				page_text = _get_body_text(driver)
+				if _contains_error_keyword(page_text):
 					print("Found ERROR keyword on the page.")
 					return 1
 
@@ -264,14 +240,15 @@ def run_flow_steps(flow: Dict[str, Any], cli_overrides: argparse.Namespace) -> i
 					raise ValueError("solve_captcha requires 'input_selector'")
 				
 				# 传递selenium_check模块的函数引用
-				selenium_check_funcs = (get_body_text, _type, _click)
+				selenium_check_funcs = (_get_body_text, _type, _click)
 				success = solve_simple_captcha(
 					driver, captcha_selector, input_selector, submit_selector, 
 					max_attempts, preprocessing, selenium_check_funcs
 				)
 				if not success:
-					print("验证码解决失败", file=sys.stderr)
-					return 1
+					print("验证码解决失败，请手动输入", file=sys.stderr)
+					
+					
 
 			elif action == "wait_user":
 				# 等待用户手动操作（如复杂验证码）
@@ -293,13 +270,7 @@ def run_flow_steps(flow: Dict[str, Any], cli_overrides: argparse.Namespace) -> i
 				except EOFError:
 					variables[name] = ""
 
-			elif action == "switch_to_frame":
-				# 切换到iframe（如验证码在iframe中）
-				if not selector:
-					raise ValueError("switch_to_frame requires 'selector'")
-				by, val = _resolve_locator(selector)
-				iframe = WebDriverWait(driver, step_timeout).until(EC.presence_of_element_located((by, val)))
-				driver.switch_to.frame(iframe)
+
 
 			elif action == "switch_to_default_content":
 				# 切换回主文档

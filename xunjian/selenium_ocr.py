@@ -49,21 +49,22 @@ def preprocess_image(img_cv: np.ndarray, preprocessing: str = "default") -> np.n
     Returns:
         np.ndarray: 预处理后的图像
     """
-    if preprocessing == "binary":
-        # 二值化处理
-        gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
-        _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        return binary
-    elif preprocessing == "grayscale":
-        # 灰度处理
-        return cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
-    elif preprocessing == "denoise":
-        # 去噪处理
-        gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
-        return cv2.fastNlMeansDenoising(gray)
-    else:
-        # 默认处理：转灰度
-        return cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+    # if preprocessing == "binary":
+    #     # 二值化处理
+    #     gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+    #     _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    #     return binary
+    # elif preprocessing == "grayscale":
+    #     # 灰度处理
+    #     return cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+    # elif preprocessing == "denoise":
+    #     # 去噪处理
+    #     gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+    #     return cv2.fastNlMeansDenoising(gray)
+    # else:
+    #     # 默认处理：转灰度
+    #     return cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+    return img_cv
 
 
 def ocr_recognize_text(img_cv: np.ndarray, config: Optional[str] = None) -> str:
